@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A clear, contributor-friendly snapshot of project ownership, progress, and priorities.">
+    <title>Project Pulse</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="page-container">
+        <p class="eyebrow">Team workspace</p>
+        <h1>Project Pulse</h1>
+        <p class="intro">A shared snapshot of what we're building, who's moving it forward, and where contributors can help.</p>
+      </div>
+    </header>
+
+    <main class="page-container">
+      <section class="dashboard" aria-labelledby="projects-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Project directory</p>
+            <h2 id="projects-heading">Projects</h2>
+          </div>
+          <p id="project-count" class="project-count" hidden></p>
+        </div>
+
+        <p id="loading-state" role="status" aria-live="polite">Loading project updates…</p>
+        <div id="error-state" role="alert" hidden>
+          <h3>Project updates couldn't be loaded</h3>
+          <p id="error-message">Check that project-data.json is valid and available, then refresh the page.</p>
+        </div>
+        <p id="empty-state" role="status" hidden>No projects to show yet. Add a project to project-data.json to get started.</p>
+        <div id="project-list" class="project-list" aria-live="polite" aria-busy="true"></div>
+      </section>
+    </main>
+
+    <script>
+      const projectList = document.querySelector("#project-list");
+      const loadingState = document.querySelector("#loading-state");
+      const errorState = document.querySelector("#error-state");
+      const errorMessage = document.querySelector("#error-message");
+      const emptyState = document.querySelector("#empty-state");
+      const projectCount = document.querySelector("#project-count");
+
+      function fieldValue(project, field, fallback) {
+        const value = project && project[field];
+        return typeof value === "string" && value.trim() ? value.trim() : fallback;
+      }
+
+      function normalizeDataValue(value) {
+        return String(value)
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "") || "unknown";
+      }
+
+      function addDetail(label, value, className, dataAttribute) {
+        const detail = document.createElement("div");
+        detail.className = className;
+
+        const term = document.createElement("dt");
+        term.textContent = label;
+        const description = document.createElement("dd");
+        description.textContent = value;
+        if (dataAttribute) {
+          description.setAttribute(dataAttribute.name, dataAttribute.value);
+        }
+
+        detail.append(term, description);
+        return detail;
+      }
+
+      function createProjectCard(project) {
+        const card = document.createElement("article");
+        card.className = "project-card";
+
+        const heading = document.createElement("h3");
+        heading.className = "project-name";
+        heading.textContent = fieldValue(project, "name", "Untitled project");
+
+        const summary = document.createElement("p");
+        summary.className = "project-summary";
+        summary.textContent = fieldValue(project, "summary", "No project summary has been added yet.");
+
+        const status = fieldValue(project, "status", "Status not set");
+        const priority = fieldValue(project, "priority", "Priority not set");
+        const details = document.createElement("dl");
+        details.className = "project-details";
+        details.append(
+          addDetail("Owner", fieldValue(project, "owner", "Owner not assigned"), "project-owner"),
+          addDetail("Status", status, "project-status", {
+            name: "data-status",
+            value: normalizeDataValue(status)
+          }),
+          addDetail("Recent activity", fieldValue(project, "recentActivity", "No recent activity reported"), "project-activity"),
+          addDetail("Priority", priority, "project-priority", {
+            name: "data-priority",
+            value: normalizeDataValue(priority)
+          })
+        );
+
+        card.append(heading, summary, details);
+        return card;
+      }
+
+      async function loadProjects() {
+        loadingState.hidden = false;
+        errorState.hidden = true;
+        emptyState.hidden = true;
+        projectCount.hidden = true;
+        projectList.replaceChildren();
+        projectList.setAttribute("aria-busy", "true");
+
+        try {
+          const response = await fetch("project-data.json");
+          if (!response.ok) {
+            throw new Error(`The project data request failed (${response.status}).`);
+          }
+
+          const data = await response.json();
+          if (!data || !Array.isArray(data.projects)) {
+            throw new Error("The project data must contain a top-level projects array.");
+          }
+
+          loadingState.hidden = true;
+          if (data.projects.length === 0) {
+            emptyState.hidden = false;
+            return;
+          }
+
+          const cards = data.projects.map(createProjectCard);
+          projectList.replaceChildren(...cards);
+          projectCount.textContent = `${cards.length} ${cards.length === 1 ? "project" : "projects"}`;
+          projectCount.hidden = false;
+        } catch (error) {
+          loadingState.hidden = true;
+          errorMessage.textContent = `${error.message} Check the file and refresh to try again.`;
+          errorState.hidden = false;
+        } finally {
+          projectList.setAttribute("aria-busy", "false");
+        }
+      }
+
+      loadProjects();
+    </script>
+  </body>
+</html>

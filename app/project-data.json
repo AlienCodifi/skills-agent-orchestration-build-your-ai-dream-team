@@ -1,0 +1,36 @@
+{
+  "projects": [
+    {
+      "name": "Atlas",
+      "owner": "Mona Patel",
+      "status": "On track",
+      "recentActivity": "Published the contributor onboarding guide and opened the next sprint.",
+      "priority": "High",
+      "summary": "Build a shared, searchable knowledge hub so contributors can find project decisions and onboarding resources quickly."
+    },
+    {
+      "name": "Beacon",
+      "owner": "Jordan Lee",
+      "status": "In progress",
+      "recentActivity": "Completed the first accessibility review; keyboard navigation fixes are underway.",
+      "priority": "Medium",
+      "summary": "Improve the contributor experience with accessible navigation and clearer paths to common team resources."
+    },
+    {
+      "name": "Compass",
+      "owner": "Avery Chen",
+      "status": "At risk",
+      "recentActivity": "The data import is blocked while the team confirms the upstream API contract.",
+      "priority": "High",
+      "summary": "Create a dependable project directory that brings ownership, status, and recent updates into one place."
+    },
+    {
+      "name": "Fern",
+      "owner": "Sam Rivera",
+      "status": "Planning",
+      "recentActivity": "Gathered feedback from five contributors and drafted the initial scope.",
+      "priority": "Low",
+      "summary": "Explore lightweight ways to recognize contributions and help new teammates discover opportunities."
+    }
+  ]
+}
